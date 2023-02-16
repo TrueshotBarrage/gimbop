@@ -1,23 +1,21 @@
+"""This module contains the main framework for representing music in GIMBOP."""
 import csv
-import random
 import operator
 import subprocess
-import numpy as np
-
-from typing import NamedTuple
 
 
 class Key:
+    """Class for representing a key signature."""
+
     def __init__(self, key_string):
         self.key_string = key_string
-        self.key = self.get_key_num(key_string)
+        self.num_accidentals = self.get_num_accidentals(key_string)
 
     def __repr__(self):
-        return str(self.key)
+        return str(self.num_accidentals)
 
-    def get_key_num(self, key_string):
+    def get_num_accidentals(self, key_string):
         key_dict = {
-            # Key signature is the number of sharps or flats in the key
             "C": 0,
             "G": 1,
             "D": 2,
@@ -44,89 +42,108 @@ class Key:
         return key_dict[key_string]
 
 
-class SongWriter:
-    def __init__(
-        self,
-        key,
-    ):
-        pass
+class SongMetadata:
+    """Class to store fixed metadata about every generated song."""
 
-
-class Music:
-    def __init__(self, key):
+    def __init__(self):
         self.midi_type = 1
         self.num_tracks = 1
         self.quarter_note = 480
         self.ts_num = 4
         self.ts_denom = 2  # negative power of two, e.g. eighth note = 3
-        self.key_signature = key  # -7 to 7 inclusive; flats (-) & sharps (+)
         self.major = "major"
+
+
+# Dictionary of MIDI-standard instrument types
+instrument_types = {
+    "grand_piano": 0,
+    "bright_acoustic_piano": 1,
+    "electric_piano_1": 4,
+    "electric_piano_2": 5,
+    "acoustic_guitar": 24,
+    "electric_guitar_jazz": 26,
+}
+
+
+class SongWriter:
+    """Class to generate and write a song to a MIDI file."""
+
+    def __init__(
+        self,
+        key=Key("C"),
+        bpm=120,
+    ):
+        # Initialize the metadata that we (probably) won't change
+        self.meta = SongMetadata()
+
+        # Initialize the key signature
+        self.key_signature = key
+        self.num_accidentals = key.num_accidentals
+
         # 500000 = 120 quarter notes (beats) per minute; also 60,000,000 / bpm
-        self.bpm = 120
+        self.bpm = bpm
         self.tempo = 60000000 / self.bpm
 
-        self.LH_instrument = 0
-        self.RH_instrument = 0
-        self.misc_instrument1 = 0
-        self.misc_instrument2 = 26  # Electric Guitar (jazz)
+        # Initialize the instruments
+        self.instruments = [
+            instrument_types["grand_piano"],
+            instrument_types["grand_piano"],
+        ]
 
-        self.LH_time = 0
-        self.RH_time = 0
-        self.misc_time1 = 0
-        self.misc_time2 = 0
+        # Initialize the actual contents of the song
         self.lines = []
 
-    # Song setup
-    def start(self):
+    def _initialize_instruments(self):
+        """Initialize the instruments for the song in csvmidi format."""
+        for i in range(len(self.instruments)):
+            self.lines.append([1, 0, "Control_c", i, 121, 0])
+            self.lines.append([1, 0, "Program_c", i, self.instruments[i]])
+            self.lines.append([1, 0, "MIDI_port", i])
+
+    def write(self, filename):
+        """Write the song to a MIDI file."""
+        self._write_header()
+        self._initialize_instruments()
+        self._write_content()
+        self._finish(filename)
+
+    def _write_header(self):
         self.lines.append(
-            [0, 0, "Header", self.midi_type, self.num_tracks, self.quarter_note]
+            [
+                0,
+                0,
+                "Header",
+                self.meta.midi_type,
+                self.meta.num_tracks,
+                self.meta.quarter_note,
+            ]
         )
         self.lines.append([1, 0, "Start_track"])
-        self.lines.append([1, 0, "Time_signature", self.ts_num, self.ts_denom, 24, 8])
-        self.lines.append([1, 0, "Key_signature", self.key_signature, self.major])
+        self.lines.append(
+            [1, 0, "Time_signature", self.meta.ts_num, self.meta.ts_denom, 24, 8]
+        )
+        self.lines.append(
+            [1, 0, "Key_signature", self.num_accidentals, self.meta.major]
+        )
         self.lines.append([1, 0, "Tempo", self.tempo])
 
-        # These remain to be seen what they do exactly...
-        self.lines.append([1, 0, "Control_c", 0, 121, 0])
-        self.lines.append([1, 0, "Program_c", 0, self.LH_instrument])  # 0 = piano
-        self.lines.append([1, 0, "MIDI_port", 0])
+    def _write_content(self):
+        # TODO: Figure out how to keep track of each track with its own time
+        pass
 
-        self.lines.append([1, 0, "Control_c", 1, 121, 0])
-        self.lines.append([1, 0, "Program_c", 1, self.RH_instrument])
-        self.lines.append([1, 0, "MIDI_port", 1])
-
-        self.lines.append([1, 0, "Control_c", 2, 121, 0])
-        self.lines.append([1, 0, "Program_c", 2, self.misc_instrument1])
-        self.lines.append([1, 0, "MIDI_port", 2])
-
-        self.lines.append([1, 0, "Control_c", 3, 121, 0])
-        self.lines.append([1, 0, "Program_c", 3, self.misc_instrument2])
-        self.lines.append([1, 0, "MIDI_port", 3])
-
-    # Song wrap-up
-    def finish(self, filename):
+    def _finish(self, filename):
         self.lines = sorted(self.lines, key=operator.itemgetter(1))
-        total_time = self.LH_time if self.LH_time > self.RH_time else self.RH_time
-        total_time = self.misc_time1 if self.misc_time1 > total_time else total_time
-        total_time = self.misc_time2 if self.misc_time2 > total_time else total_time
+        # total_time = self.LH_time if self.LH_time > self.RH_time else self.RH_time
+        # total_time = self.misc_time1 if self.misc_time1 > total_time else total_time
+        # total_time = self.misc_time2 if self.misc_time2 > total_time else total_time
+        total_time = 100000  # TODO: Hardcoded for now, change this
 
         self.lines.append([1, total_time, "End_track"])
         self.lines.append([0, 0, "End_of_file"])
 
-        with open(filename + ".csv", "w") as writeFile:
-            writer = csv.writer(writeFile)
+        with open(filename + ".csv", "w") as f:
+            writer = csv.writer(f)
             writer.writerows(self.lines)
 
-        writeFile.close()
+        f.close()
         subprocess.run(["./csvmidi", filename + ".csv", filename + ".mid"])
-
-    # Wrapper for repeating any method indefinitely
-    def repeat(self, func, args, n):
-        for _ in range(n):
-            x = func(*args)
-        return
-
-    # Plays a note at a given time for the specified duration, with optional args.
-    def play_note(self, note, time, length, d=0.875, ch=0, track=1):
-        self.lines.append([track, time, "Note_on_c", ch, note, 80])
-        self.lines.append([track, time + (length * d), "Note_off_c", ch, note, 0])
