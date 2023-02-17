@@ -92,6 +92,7 @@ class SongWriter:
 
         # Initialize the actual contents of the song
         self.lines = []
+        self.total_time = 100000  # TODO: Hardcoded for now, change this
 
     def _initialize_instruments(self):
         """Initialize the instruments for the song in csvmidi format."""
@@ -103,8 +104,8 @@ class SongWriter:
     def write(self, filename):
         """Write the song to a MIDI file."""
         self._write_header()
-        self._initialize_instruments()
-        self._write_content()
+        # self._initialize_instruments()
+        # self._write_content()
         self._finish(filename)
 
     def _write_header(self):
@@ -136,9 +137,9 @@ class SongWriter:
         # total_time = self.LH_time if self.LH_time > self.RH_time else self.RH_time
         # total_time = self.misc_time1 if self.misc_time1 > total_time else total_time
         # total_time = self.misc_time2 if self.misc_time2 > total_time else total_time
-        total_time = 100000  # TODO: Hardcoded for now, change this
+        self.total_time = 100000  # TODO: Hardcoded for now, change this
 
-        self.lines.append([1, total_time, "End_track"])
+        self.lines.append([1, self.total_time, "End_track"])
         self.lines.append([0, 0, "End_of_file"])
 
         with open(filename + ".csv", "w") as f:
