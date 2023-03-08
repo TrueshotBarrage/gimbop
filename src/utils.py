@@ -1,9 +1,9 @@
 """This module contains utilities for music generation."""
 
-# Wrapper for repeating any method indefinitely
+# Wrapper for repeating any void method indefinitely
 def repeat(func, args, n):
     for _ in range(n):
-        x = func(*args)
+        _ = func(*args)
     return
 
 

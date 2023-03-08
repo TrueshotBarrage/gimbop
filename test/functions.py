@@ -1,4 +1,4 @@
-"""This module contains unit tests for the main functionalities of GIMBOP."""
+"""This module contains unit tests for the main functionalities of Gimbop."""
 
 import unittest
 import os

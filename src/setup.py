@@ -1,7 +1,10 @@
-"""This module contains the main framework for representing music in GIMBOP."""
+"""This module contains the main framework for representing music in Gimbop."""
 import csv
 import operator
 import subprocess
+
+from src.model_api import GimbopAPI
+import src.utils as utils
 
 
 class Key:
@@ -94,18 +97,11 @@ class SongWriter:
         self.lines = []
         self.total_time = 100000  # TODO: Hardcoded for now, change this
 
-    def _initialize_instruments(self):
-        """Initialize the instruments for the song in csvmidi format."""
-        for i in range(len(self.instruments)):
-            self.lines.append([1, 0, "Control_c", i, 121, 0])
-            self.lines.append([1, 0, "Program_c", i, self.instruments[i]])
-            self.lines.append([1, 0, "MIDI_port", i])
-
-    def write(self, filename):
+    def write(self, filename, sample_song=False):
         """Write the song to a MIDI file."""
         self._write_header()
-        # self._initialize_instruments()
-        # self._write_content()
+        self._initialize_instruments()
+        self._write_content() if not sample_song else self.write_sample_song()
         self._finish(filename)
 
     def _write_header(self):
@@ -128,18 +124,43 @@ class SongWriter:
         )
         self.lines.append([1, 0, "Tempo", self.tempo])
 
+    def _initialize_instruments(self):
+        """Initialize the instruments for the song in csvmidi format."""
+        for i in range(len(self.instruments)):
+            self.lines.append([1, 0, "Control_c", i, 121, 0])
+            self.lines.append([1, 0, "Program_c", i, self.instruments[i]])
+            self.lines.append([1, 0, "MIDI_port", i])
+
     def _write_content(self):
-        # TODO: Figure out how to keep track of each track with its own time
-        pass
+        generator = GimbopAPI()
+        model = generator.retrieve_model()
+
+        self.lines = utils.play_note(self.lines, 60, 0, 480)
+        self.lines = utils.play_note(self.lines, 62, 480, 480)
+        self.lines = utils.play_note(self.lines, 64, 960, 960)
+
+    def write_sample_song(self):
+        """Write a sample song to a MIDI file."""
+        # All the notes are quarter notes
+        dur = 480
+
+        # Read sample_notes.py to get and write the notes
+        from sample_notes import notes
+
+        for i in range(len(notes)):
+            self.lines = utils.play_note(self.lines, notes[i], i * dur, dur)
+
+        # Set the total time of the song
+        self.total_time = len(notes) * dur
 
     def _finish(self, filename):
         self.lines = sorted(self.lines, key=operator.itemgetter(1))
         # total_time = self.LH_time if self.LH_time > self.RH_time else self.RH_time
         # total_time = self.misc_time1 if self.misc_time1 > total_time else total_time
         # total_time = self.misc_time2 if self.misc_time2 > total_time else total_time
-        self.total_time = 100000  # TODO: Hardcoded for now, change this
+        total_time = self.total_time  # TODO: Hardcoded for now, change this
 
-        self.lines.append([1, self.total_time, "End_track"])
+        self.lines.append([1, total_time, "End_track"])
         self.lines.append([0, 0, "End_of_file"])
 
         with open(filename + ".csv", "w") as f:
