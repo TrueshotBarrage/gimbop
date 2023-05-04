@@ -15,4 +15,19 @@
 
 A good clustering of these may be useful for transfer learning.
 
+## Clustering Chords
+
+- Features: relative note timing (w.r.t. total song length & tempo), LH/RH
+  likelihood (e.g. if a note is played in the LH, it is more likely to be a
+  chord; a note in LH and RH cannot be a chord; how to determine this? look at
+  the next section)
+
+### Determining LH/RH
+
+1. Average the min/max notes in the song. Gives rough split
+2. Use the median note
+3. Use the mean note
+
+## Other Ideas
+
 - Hypothesis: improved music generation (better prediction of notes)

@@ -7,8 +7,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def midi_to_notes(midi_file: str) -> pd.DataFrame:
-    pm = pretty_midi.PrettyMIDI(midi_file)
+def midi_to_notes(midi_file: str, pm=None) -> pd.DataFrame:
+    # Initialize PrettyMIDI for parsing MIDI file
+    if pm is None:
+        pm = pretty_midi.PrettyMIDI(midi_file)
     instrument = pm.instruments[0]
     notes = collections.defaultdict(list)
 
@@ -56,6 +58,7 @@ def main():
 
     # Get the beat locations
     beats = midi_data.get_beats()
+    downbeats = midi_data.get_downbeats()
 
     # Get beat start estimate
     beat_start = midi_data.estimate_beat_start(candidates=10, tolerance=0.025)
@@ -64,6 +67,8 @@ def main():
     piano_roll = midi_data.get_piano_roll()
 
     print(f"Tempo: {tempo},\nBeats: {beats},\nBeat Start: {beat_start}")
+    print(f"Downbeats: {downbeats}")
+    print(f"End time: {midi_data.get_end_time()}")
     # print(f"Piano Roll: {pd.DataFrame(piano_roll).head()}")
 
     # Compute the relative amount of each semitone across the entire song, a proxy for key
@@ -81,7 +86,7 @@ def main():
     # audio_data = midi_data.synthesize()
 
     # Convert MIDI to notes
-    raw_notes = midi_to_notes(fn)
+    raw_notes = midi_to_notes(fn, pm=midi_data)
     print(raw_notes.head())
 
     # Plot the piano roll
@@ -91,6 +96,7 @@ def main():
 def main2():
     fn = "test_song.mid"
     notes = midi_to_notes(fn)
+    print(notes)
 
     all_notes = []
     all_notes.append(notes)
