@@ -22,7 +22,7 @@ class MusicAbstractor:
         self.time = 0
         self.channel = 0
 
-    def abstract(self):
+    def abstract(self, fn=None, format="numpy"):
         # Get the notes from the MIDI file
         notes = midi_to_notes(self.fn)
 
@@ -43,7 +43,7 @@ class MusicAbstractor:
 
         # Initialize the music representation using numpy
         music = np.zeros((num_quantums, num_features))
-        print(music.shape)
+        print(f"Shape of song array: {music.shape}")
 
         # Iterate through the notes and assign them to the music representation
         for i, note in notes.iterrows():
@@ -68,8 +68,12 @@ class MusicAbstractor:
             # Assign the note to the music representation
             music[start_quantum, pitch - 21] = duration_quantum
 
-        # Save the music representation to a file
-        np.savetxt("music.txt", music, fmt="%d")
+        if fn is not None:
+            # Save the music representation to a file
+            if format == "numpy":
+                np.save(fn, music)
+            else:
+                np.savetxt(fn, music, fmt="%d")
 
         # from matplotlib import pyplot as plt
 
@@ -78,7 +82,7 @@ class MusicAbstractor:
 
         return music
 
-    def deabstract(self):
+    def deabstract(self, fn="music.txt"):
         """This method deabstracts the music representation from the encoder
         to a pandas DataFrame with the following columns:
         - pitch
@@ -88,7 +92,7 @@ class MusicAbstractor:
         - duration"""
 
         # Load the music representation from a file
-        music = np.loadtxt("music.txt", dtype=int)
+        music = np.loadtxt(fn, dtype=int)
 
         # Initialize the notes DataFrame
         notes = []
