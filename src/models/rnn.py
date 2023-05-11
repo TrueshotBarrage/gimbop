@@ -100,6 +100,7 @@ logger.info(train_ds.element_spec)
 
 # Train the model
 input_shape = (seq_length, vocab_size)
+batch_input_shape = (batch_size, seq_length, vocab_size)
 learning_rate = 0.005
 
 # inputs = tf.keras.Input(input_shape)
@@ -112,17 +113,18 @@ learning_rate = 0.005
 # model = tf.keras.Model(inputs, outputs)
 
 model = tf.keras.Sequential()
-model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
+model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
+model.add(tf.keras.layers.LSTM(vocab_size))
 model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
 
 # Make sure the output shape is correct
 # model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
-model.add(tf.keras.layers.Flatten())
+# model.add(tf.keras.layers.Flatten())
 
-loss = {
-    "quantum": tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-}
-
+# loss = {
+#     "quantum": tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+# }
+loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
 model.compile(loss=loss, optimizer=optimizer)
