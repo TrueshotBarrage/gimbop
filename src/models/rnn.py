@@ -113,9 +113,17 @@ learning_rate = 0.005
 # model = tf.keras.Model(inputs, outputs)
 
 model = tf.keras.Sequential()
-model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
-model.add(tf.keras.layers.LSTM(vocab_size))
-model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
+# model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
+# model.add(tf.keras.layers.LSTM(vocab_size))
+model.add(
+    tf.keras.layers.LSTM(
+        units=label_size * vocab_size,
+        batch_input_shape=batch_input_shape,
+        stateful=False,
+        return_sequences=False,
+    )
+)
+# model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
 
 # Make sure the output shape is correct
 # model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
