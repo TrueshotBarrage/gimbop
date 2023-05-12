@@ -16,6 +16,8 @@ logger.addHandler(ch)
 
 # Check if .npy file already exists
 if not os.path.exists("all_notes.npy"):
+    logger.info("Creating all_notes.npy file...")
+
     # Get path of dataset
     path = os.path.join(os.getcwd(), "data", "output")
     data_dir = pathlib.Path(path)
@@ -41,6 +43,8 @@ if not os.path.exists("all_notes.npy"):
     np.save("all_notes.npy", all_notes)
 
 else:
+    logger.info("Loading all_notes.npy file...")
+
     # Load the all_notes array from the npy file
     all_notes = np.load("all_notes.npy")
     n_notes = all_notes.shape[0]
