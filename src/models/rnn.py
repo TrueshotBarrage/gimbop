@@ -14,26 +14,37 @@ formatter = logging.Formatter("%(asctime)s: %(message)s", "%H:%M:%S")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-# Get path of dataset
-path = os.path.join(os.getcwd(), "data", "output")
-data_dir = pathlib.Path(path)
-logger.info(f"Looking in {data_dir}")
+# Check if .npy file already exists
+if not os.path.exists("all_notes.npy"):
+    # Get path of dataset
+    path = os.path.join(os.getcwd(), "data", "output")
+    data_dir = pathlib.Path(path)
+    logger.info(f"Looking in {data_dir}")
 
-filenames = glob.glob(str(data_dir / "*.npy"))
-logger.info(f"Number of files: {len(filenames)}")
+    filenames = glob.glob(str(data_dir / "*.npy"))
+    logger.info(f"Number of files: {len(filenames)}")
 
-# Process a select number of files to mock train the model
-num_files = 750  # 1276 total, we can do a rough 60:30:10 split
-all_notes = []
-for f in filenames[:num_files]:
-    notes = np.load(f)
-    # logger.info(notes.shape)
-    all_notes.append(notes)
+    # Process a select number of files to mock train the model
+    num_files = 750  # 1276 total, we can do a rough 60:30:10 split
+    all_notes = []
+    for f in filenames[:num_files]:
+        notes = np.load(f)
+        # logger.info(notes.shape)
+        all_notes.append(notes)
 
-# Concatenate all the notes into a single numpy array with shape (num_notes, 88)
-all_notes = np.concatenate(all_notes, axis=0)
-n_notes = all_notes.shape[0]
-logger.info(f"Shape of all_notes: {all_notes.shape}")
+    # Concatenate all the notes into a single numpy array with shape (num_notes, 88)
+    all_notes = np.concatenate(all_notes, axis=0)
+    n_notes = all_notes.shape[0]
+    logger.info(f"Shape of all_notes: {all_notes.shape}")
+
+    # Save the all_notes array to a npy file to load faster next time
+    np.save("all_notes.npy", all_notes)
+
+else:
+    # Load the all_notes array from the npy file
+    all_notes = np.load("all_notes.npy")
+    n_notes = all_notes.shape[0]
+    logger.info(f"Shape of all_notes: {all_notes.shape}")
 
 # Convert numpy data into tensorflow dataset
 notes_ds = tf.data.Dataset.from_tensor_slices(all_notes)
