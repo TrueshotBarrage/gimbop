@@ -62,7 +62,7 @@ def create_sequences(
     # Split the labels
     def split_labels(sequences):
         inputs = sequences[:-label_size]
-        labels = sequences[-label_size]
+        labels = sequences[-label_size:]
 
         return inputs, labels
 
@@ -126,13 +126,13 @@ model.add(
 # model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
 
 # Make sure the output shape is correct
-# model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
+model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
 # model.add(tf.keras.layers.Flatten())
 
 # loss = {
 #     "quantum": tf.keras.losses.CategoricalCrossentropy(from_logits=True),
 # }
-loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+loss = tf.keras.losses.Poisson()
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
 model.compile(loss=loss, optimizer=optimizer)
