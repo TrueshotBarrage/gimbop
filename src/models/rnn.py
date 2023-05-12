@@ -23,7 +23,7 @@ filenames = glob.glob(str(data_dir / "*.npy"))
 logger.info(f"Number of files: {len(filenames)}")
 
 # Process a select number of files to mock train the model
-num_files = 5
+num_files = 750  # 1276 total, we can do a rough 60:30:10 split
 all_notes = []
 for f in filenames[:num_files]:
     notes = np.load(f)
@@ -71,7 +71,7 @@ def create_sequences(
 
 # Parameters for training the RNN
 vocab_size = 88
-seq_length = 16 * 10  # 10 measures since each quantum = sixteenth note
+seq_length = 16 * 4  # 10 measures since each quantum = sixteenth note
 shift_size = 4
 label_size = 16
 
@@ -88,7 +88,7 @@ for seq, target in seq_ds.take(1):
 # Buffer size is the number of items in the dataset; e.g.:
 # 64 notes & seq = 4 & stride = 1 => buffer = 60
 # 64 notes & seq = 4 & stride = 4 => buffer = 15
-batch_size = 64
+batch_size = 32
 buffer_size = (n_notes - seq_length) // shift_size
 train_ds = (
     seq_ds.shuffle(buffer_size)
@@ -116,7 +116,7 @@ model = tf.keras.Sequential()
 # model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
 # model.add(tf.keras.layers.LSTM(vocab_size))
 model.add(
-    tf.keras.layers.LSTM(
+    tf.keras.layers.CuDNNLSTM(
         units=label_size * vocab_size,
         batch_input_shape=batch_input_shape,
         stateful=False,
@@ -124,6 +124,7 @@ model.add(
     )
 )
 # model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
+model.add(tf.keras.layers.Activation(tf.keras.activations.tanh))
 
 # Make sure the output shape is correct
 model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
