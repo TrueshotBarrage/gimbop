@@ -106,7 +106,7 @@ for seq, target in seq_ds.take(1):
 # Buffer size is the number of items in the dataset; e.g.:
 # 64 notes & seq = 4 & stride = 1 => buffer = 60
 # 64 notes & seq = 4 & stride = 4 => buffer = 15
-batch_size = 32
+batch_size = 64
 buffer_size = (n_notes - seq_length) // shift_size
 train_ds = (
     seq_ds.shuffle(buffer_size)
@@ -119,7 +119,7 @@ logger.info(train_ds.element_spec)
 # Train the model
 input_shape = (seq_length, vocab_size)
 batch_input_shape = (batch_size, seq_length, vocab_size)
-learning_rate = 0.005
+learning_rate = 0.01
 
 # inputs = tf.keras.Input(input_shape)
 # x = tf.keras.layers.LSTM(128)(inputs)
@@ -151,7 +151,7 @@ model.add(
     )
 )
 # model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
-model.add(tf.keras.layers.Activation(tf.keras.activations.sigmoid))
+# model.add(tf.keras.layers.Activation(tf.keras.activations.sigmoid))
 
 # Make sure the output shape is correct
 model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
