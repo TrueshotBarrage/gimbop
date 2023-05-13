@@ -127,11 +127,19 @@ learning_rate = 0.005
 
 # model = tf.keras.Model(inputs, outputs)
 
+logger.info("Model summary:")
+logger.info(f"batch_size: {batch_size}")
+logger.info(f"seq_length: {seq_length}")
+logger.info(f"vocab_size: {vocab_size}")
+logger.info(f"input_shape: {input_shape}")
+logger.info(f"batch_input_shape: {batch_input_shape}")
+logger.info(f"learning_rate: {learning_rate}")
+
 model = tf.keras.Sequential()
 # model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
 # model.add(tf.keras.layers.LSTM(vocab_size))
 model.add(
-    tf.keras.layers.CuDNNLSTM(
+    tf.keras.layers.LSTM(
         units=label_size * vocab_size,
         batch_input_shape=batch_input_shape,
         stateful=False,
