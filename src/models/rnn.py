@@ -161,15 +161,15 @@ model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
 #     "quantum": tf.keras.losses.CategoricalCrossentropy(from_logits=True),
 # }
 loss = tf.keras.losses.Poisson()
-optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, clipvalue=1.0)
 
 model.compile(loss=loss, optimizer=optimizer)
 
 model.summary()
 
 # Evaluate losses
-losses = model.evaluate(train_ds, return_dict=True)
-logger.info(f"Losses: {losses}")
+# losses = model.evaluate(train_ds, return_dict=True)
+# logger.info(f"Losses: {losses}")
 
 # Train the model
 callbacks = [
