@@ -148,7 +148,7 @@ model.add(
     )
 )
 # model.add(tf.keras.layers.Dense(label_size * vocab_size, name="quantum"))
-model.add(tf.keras.layers.Activation(tf.keras.activations.tanh))
+model.add(tf.keras.layers.Activation(tf.keras.activations.sigmoid))
 
 # Make sure the output shape is correct
 model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
