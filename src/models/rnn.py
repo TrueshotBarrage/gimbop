@@ -27,7 +27,7 @@ if not os.path.exists("all_notes.npy"):
     logger.info(f"Number of files: {len(filenames)}")
 
     # Process a select number of files to mock train the model
-    num_files = 750  # 1276 total, we can do a rough 60:30:10 split
+    num_files = 100  # 1276 total, we can do a rough 60:30:10 split -- nvm, too big
     all_notes = []
     for f in filenames[:num_files]:
         notes = np.load(f)
@@ -127,13 +127,14 @@ learning_rate = 0.005
 
 # model = tf.keras.Model(inputs, outputs)
 
-logger.info("Model summary:")
+logger.info("===== MODEL SUMMARY =====")
 logger.info(f"batch_size: {batch_size}")
 logger.info(f"seq_length: {seq_length}")
 logger.info(f"vocab_size: {vocab_size}")
 logger.info(f"input_shape: {input_shape}")
 logger.info(f"batch_input_shape: {batch_input_shape}")
 logger.info(f"learning_rate: {learning_rate}")
+logger.info("===== MODEL SUMMARY =====")
 
 model = tf.keras.Sequential()
 # model.add(tf.keras.Input(batch_input_shape=batch_input_shape))
