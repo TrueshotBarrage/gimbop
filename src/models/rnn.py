@@ -14,6 +14,9 @@ formatter = logging.Formatter("%(asctime)s: %(message)s", "%H:%M:%S")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+# Verify that the GPU is available
+logger.info(f"GPU list: {tf.config.list_physical_devices('GPU')}")
+
 # Check if .npy file already exists
 if not os.path.exists("all_notes.npy"):
     logger.info("Creating all_notes.npy file...")
