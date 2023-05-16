@@ -54,7 +54,8 @@ class GimbopAPI:
         music = abstractor.abstract()
 
         # Generate notes to the right input size for the model, which is (64, 88)
-        assert music.shape[1] == 88
+        print(music.shape)
+        assert music.shape[1] == 88, "Music representation has wrong number of features"
         num_quantums = music.shape[0]  # Much bigger than 64
 
         for i in range(10):
@@ -64,3 +65,8 @@ class GimbopAPI:
             # Predict the next 16 notes
             predictions = self.model.predict(input_seq)
             print(f"Prediction {i+1}: {predictions}")
+            assert predictions.shape == (1, 16, 88), "Predictions have wrong shape"
+
+            # Save the predictions to a numpy array
+            # Reshape the predictions to (16, 88)
+            predictions = tf.reshape(predictions, (16, 88))
