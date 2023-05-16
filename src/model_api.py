@@ -41,6 +41,35 @@ def create_model():
     return model
 
 
+# Define a helper function to generate RNN input sequences
+def create_sequences(
+    dataset: tf.data.Dataset,
+    seq_length: int,
+    shift_size=4,
+    label_size=16,
+) -> tf.data.Dataset:
+    """Returns TF Dataset of sequence and label examples."""
+
+    # Take extra "label_size" length for the labels
+    seq_length = seq_length + label_size
+    windows = dataset.window(
+        seq_length, shift=shift_size, stride=1, drop_remainder=True
+    )
+
+    # `flat_map` flattens the" dataset of datasets" into a dataset of tensors
+    flatten = lambda x: x.batch(seq_length, drop_remainder=True)
+    sequences = windows.flat_map(flatten)
+
+    # Split the labels
+    def split_labels(sequences):
+        inputs = sequences[:-label_size]
+        labels = sequences[-label_size:]
+
+        return inputs, labels
+
+    return sequences.map(split_labels, num_parallel_calls=tf.data.AUTOTUNE)
+
+
 class GimbopAPI:
     def __init__(self, checkpoint_filepath="./training_checkpoints/ckpt_7"):
         self.model = create_model()
@@ -57,6 +86,15 @@ class GimbopAPI:
         print(music.shape)
         assert music.shape[1] == 88, "Music representation has wrong number of features"
         num_quantums = music.shape[0]  # Much bigger than 64
+
+        batch_size = 64
+        seq_length = 16 * 4  # 10 measures since each quantum = sixteenth note
+        shift_size = 4
+        label_size = 16
+
+        notes_ds = tf.data.Dataset.from_tensor_slices(music)
+        seq_ds = create_sequences(notes_ds, seq_length, shift_size, label_size)
+        seq_ds.batch(batch_size, drop_remainder=True)
 
         for i in range(10):
             input_seq = music[i : i + 64, :]

@@ -30,7 +30,7 @@ if not os.path.exists("all_notes.npy"):
     logger.info(f"Number of files: {len(filenames)}")
 
     # Process a select number of files to mock train the model
-    num_files = 100  # 1276 total, we can do a rough 60:30:10 split -- nvm, too big
+    num_files = 10  # 1276 total, we can do a rough 60:30:10 split -- nvm, too big
     all_notes = []
     for f in filenames[:num_files]:
         notes = np.load(f)
@@ -106,7 +106,7 @@ for seq, target in seq_ds.take(1):
 # Buffer size is the number of items in the dataset; e.g.:
 # 64 notes & seq = 4 & stride = 1 => buffer = 60
 # 64 notes & seq = 4 & stride = 4 => buffer = 15
-batch_size = 64
+batch_size = 1
 buffer_size = (n_notes - seq_length) // shift_size
 train_ds = (
     seq_ds.shuffle(buffer_size)
@@ -119,7 +119,7 @@ logger.info(train_ds.element_spec)
 # Train the model
 input_shape = (seq_length, vocab_size)
 batch_input_shape = (batch_size, seq_length, vocab_size)
-learning_rate = 0.01
+learning_rate = 0.005
 
 # inputs = tf.keras.Input(input_shape)
 # x = tf.keras.layers.LSTM(128)(inputs)
@@ -160,8 +160,8 @@ model.add(tf.keras.layers.Reshape((label_size, vocab_size)))
 # loss = {
 #     "quantum": tf.keras.losses.CategoricalCrossentropy(from_logits=True),
 # }
-loss = tf.keras.losses.Poisson()
-optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, clipvalue=1.0)
+loss = tf.keras.losses.MeanSquaredError()
+optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
 model.compile(loss=loss, optimizer=optimizer)
 
@@ -180,7 +180,7 @@ callbacks = [
         monitor="loss", patience=5, verbose=1, restore_best_weights=True
     ),
 ]
-epochs = 50
+epochs = 10
 history = model.fit(
     train_ds,
     epochs=epochs,
