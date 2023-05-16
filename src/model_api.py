@@ -61,8 +61,8 @@ class GimbopAPI:
         for i in range(10):
             input_seq = music[i : i + 64, :]
             # input_seq = tf.expand_dims(input_seq, 0)
-            # print(f"Input {i+1}: {input_seq}")
-            # print(f"Input {i+1} shape: {input_seq.shape}")
+            print(f"Input {i+1}: {input_seq}")
+            print(f"Input {i+1} shape: {input_seq.shape}")
 
             # Predict the next 16 notes
             predictions = self.model.predict(input_seq)
