@@ -1,5 +1,6 @@
 """This module contains the brains behind music generation."""
 import tensorflow as tf
+from src.representation import MusicAbstractor
 
 
 def create_model():
@@ -47,3 +48,19 @@ class GimbopAPI:
 
     def retrieve_model(self, checkpoint_filepath="./training_checkpoints/ckpt_7"):
         self.model.load_weights(checkpoint_filepath)
+
+    def generate_notes_test(self, midi_file):
+        abstractor = MusicAbstractor(midi_file)
+        music = abstractor.abstract()
+
+        # Generate notes to the right input size for the model, which is (64, 88)
+        assert music.shape[1] == 88
+        num_quantums = music.shape[0]  # Much bigger than 64
+
+        for i in range(10):
+            input_seq = music[i : i + 64, :]
+            input_seq = tf.expand_dims(input_seq, 0)
+
+            # Predict the next 16 notes
+            predictions = self.model.predict(input_seq)
+            print(f"Prediction {i+1}: {predictions}")

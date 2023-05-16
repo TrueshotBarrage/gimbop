@@ -4,6 +4,7 @@ import operator
 import subprocess
 
 from src.model_api import GimbopAPI
+from src.representation import MusicAbstractor
 import src.utils as utils
 
 

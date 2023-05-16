@@ -155,6 +155,7 @@ model.compile(loss=loss, optimizer=optimizer)
 # Load the model weights
 checkpoint_filepath = "./training_checkpoints/ckpt_7"
 model.load_weights(checkpoint_filepath)
+logger.info("Loaded model weights")
 
 # Evaluate losses
 losses = model.evaluate(test_ds, return_dict=True)
