@@ -88,25 +88,41 @@ class GimbopAPI:
         num_quantums = music.shape[0]  # Much bigger than 64
 
         batch_size = 64
-        seq_length = 16 * 4  # 10 measures since each quantum = sixteenth note
-        shift_size = 4
-        label_size = 16
+        # seq_length = 16 * 4  # 4 measures since each quantum = sixteenth note
+        # shift_size = 4
+        # label_size = 16
 
-        notes_ds = tf.data.Dataset.from_tensor_slices(music)
-        seq_ds = create_sequences(notes_ds, seq_length, shift_size, label_size)
-        seq_ds.batch(batch_size, drop_remainder=True)
+        # notes_ds = tf.data.Dataset.from_tensor_slices(music)
+        # seq_ds = create_sequences(notes_ds, seq_length, shift_size, label_size)
+        # seq_ds.batch(batch_size, drop_remainder=True)
+        # print(seq_ds[0])
 
-        for i in range(10):
-            input_seq = music[i : i + 64, :]
-            # input_seq = tf.expand_dims(input_seq, 0)
-            print(f"Input {i+1}: {input_seq}")
-            print(f"Input {i+1} shape: {input_seq.shape}")
 
-            # Predict the next 16 notes
-            predictions = self.model.predict(input_seq)
-            print(f"Prediction {i+1}: {predictions}")
-            assert predictions.shape == (1, 16, 88), "Predictions have wrong shape"
+        # feature = tf.expand_dims(seq_ds.element_spec[0], 0)
+        # label = tf.expand_dims(seq_ds.element_spec[1], 0)
+        # print(feature)
+        # print(label)
 
-            # Save the predictions to a numpy array
-            # Reshape the predictions to (16, 88)
-            predictions = tf.reshape(predictions, (16, 88))
+        # predictions = self.model.predict(feature)
+        # print(predictions)
+
+        # Create a batch
+        batch = []
+        for i in range(batch_size):
+            batch.append(music[i * 64 : (i+1) * 64, :])
+        
+        input_seq = tf.convert_to_tensor(batch)
+        # input_seq = tf.from_tensor_slices
+        # input_seq = tf.expand_dims(input_seq, 0)
+        print(f"Input: {input_seq}")
+        print(f"Input shape: {input_seq.shape}")
+
+        # Predict the next 16 notes
+        predictions = self.model.predict(input_seq)
+        print(f"Prediction: {predictions}")
+        print(predictions.shape)
+        # assert predictions.shape == (1, 16, 88), "Predictions have wrong shape"
+
+        # Save the predictions to a numpy array
+        # Reshape the predictions to (16, 88)
+        # predictions = tf.reshape(predictions, (16, 88))
