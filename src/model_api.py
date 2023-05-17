@@ -71,7 +71,7 @@ def create_sequences(
 
 
 class GimbopAPI:
-    def __init__(self, checkpoint_filepath="./training_checkpoints/ckpt_7"):
+    def __init__(self, checkpoint_filepath="./training_checkpoints_old/ckpt_7"):
         self.model = create_model()
         self.retrieve_model(checkpoint_filepath)
 
